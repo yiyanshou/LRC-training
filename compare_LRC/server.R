@@ -68,21 +68,28 @@ function(input, output, session) {
     ggplot(lrc_data,
            aes(x = Lot, y = LTC, color = Model, shape = Model)) +
       geom_point() +
-      geom_line()
+      geom_line() +
+      labs(x = NULL) +
+      theme(legend.position = "top")
   }) %>%
     bindEvent(learning(),
               rate(),
               input$t1,
               unit_seq())
   
-  last_click <- reactiveVal()
-  
+  # Interactive plotting quantity stream adjustment
   observe({
     req(input$qty_click)
-    last_click(input$qty_click)
-  })
+    click_x <- round(input$qty_click$x)
+    click_y <- round(input$qty_click$y)
+    req(1 <= click_x,
+        click_x <= input$n_lots,
+        0 <= click_y)
+    
+    new_stream <- qty_stream()
+    new_stream[[click_x, "Qty"]] <- click_y
+    qty_stream(new_stream)
+  }) %>%
+    bindEvent(input$qty_click)
   
-  output$click_pos <- renderPrint({
-    last_click()
-  })
 }

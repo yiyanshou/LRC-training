@@ -47,9 +47,7 @@ page_sidebar(
     plotOutput("curve_plot"),
     plotOutput("qty_plot",
                click = "qty_click"),
-    verbatimTextOutput("click_pos"),
-    col_widths = c(6, 6, 12)
-    
+    col_widths = c(12, 12)
   ),
   sidebar = left_sidebar,
   title = "LRC Comparison"
