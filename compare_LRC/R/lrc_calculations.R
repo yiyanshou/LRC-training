@@ -44,7 +44,8 @@ cai_ltc <- function(first, last, t1, learning, rate) {
 stream_to_seq <- function(qty) {
   tibble(Qty = qty) %>%
     mutate(Last = cumsum(Qty),
-           First = lag(Last, default = 0) + 1)
+           First = lag(Last, default = 0) + 1,
+           Lot = row_number())
 }
 
 
