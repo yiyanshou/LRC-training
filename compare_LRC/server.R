@@ -21,14 +21,27 @@ function(input, output, session) {
     bindEvent(input$n_lots)
   
   # Update quantity plot
-  output$qty_plot <- renderPlot({
-      ggplot(qty_stream(),
-             aes(x = Lot, y = Qty)) +
+  gg_qty <- reactive({
+    dummy_data <- tibble(Lot = 1,
+                         Qty = 0,
+                         Model = c("CAD", "CAI", "UT"))
+    
+    ggplot(dummy_data,
+           aes(x = Lot, y = Qty, color = Model)) +
       geom_point() +
-      ylim(0, input$max_qty)
+      geom_point(data = qty_stream(),
+                 color = "black") +
+      ylim(0, input$max_qty) +
+      scale_color_manual(values = rep("transparent", 3)) +
+      theme(legend.text = element_text(color = "transparent"),
+            legend.title = element_text(color = "transparent"),
+            legend.key = element_rect(color = "transparent",
+                                      fill = "transparent"))
   }) %>%
     bindEvent(qty_stream(),
               input$max_qty)
+  
+  output$qty_plot <- renderPlot({gg_qty()})
   
   # Convert learning and rate slopes to parameters
   learning <- reactive({log(input$learning/100, 2)}) %>%
@@ -44,7 +57,7 @@ function(input, output, session) {
     bindEvent(qty_stream())
   
   # Update LRC plot
-  output$curve_plot <- renderPlot({
+  gg_curve <- reactive({
     lrc_data <- unit_seq() %>%
       mutate(UT = ut_ltc(First,
                          Last,
@@ -69,13 +82,14 @@ function(input, output, session) {
            aes(x = Lot, y = LTC, color = Model, shape = Model)) +
       geom_point() +
       geom_line() +
-      labs(x = NULL) +
-      theme(legend.position = "top")
+      labs(x = NULL)
   }) %>%
     bindEvent(learning(),
               rate(),
               input$t1,
               unit_seq())
+  
+  output$curve_plot <- renderPlot({gg_curve()})
   
   # Interactive plotting quantity stream adjustment
   observe({
