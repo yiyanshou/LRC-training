@@ -1,8 +1,15 @@
 # Unit theory LTC calculation.
-ut_ltc_single <- function(first, last, t1, learning, rate) {
+ut_ltc_single <- function(first, last, t1, learning, rate, lac = F) {
+  qty <- last - first + 1
   lc <- sum((first:last)^learning)
-  rc <- (last - first + 1)^rate
-  t1*lc*rc
+  rc <- qty^rate
+  ltc <- t1*lc*rc
+  
+  if (lac) {
+    ltc/qty
+  } else {
+    ltc
+  }
 }
 
 ut_ltc <- Vectorize(ut_ltc_single)
@@ -24,18 +31,31 @@ cad_cac <- function(first, last, t1, learning, rate) {
   t1*lc*rc
 }
 
-cad_ltc <- function(first, last, t1, learning, rate) {
-  cac_to_ltc(cad_cac(first, last, t1, learning, rate),
-             last)
+cad_ltc <- function(first, last, t1, learning, rate, lac = F) {
+  ltc <- cac_to_ltc(cad_cac(first, last, t1, learning, rate),
+                    last)
+  
+  if (lac) {
+    ltc/(last - first + 1)
+  } else {
+    ltc
+  }
 }
 
 
 
 # CUMAV-Iterative LTC calculation
-cai_ltc <- function(first, last, t1, learning, rate) {
+cai_ltc <- function(first, last, t1, learning, rate, lac) {
+  qty <- last - first + 1
   lc <- last^(learning + 1) - (first - 1)^(learning + 1)
-  rc <- (last - first + 1)^rate
-  t1*lc*rc
+  rc <- qty^rate
+  ltc <- t1*lc*rc
+  
+  if (lac) {
+    ltc/qty
+  } else {
+    ltc
+  }
 }
 
 

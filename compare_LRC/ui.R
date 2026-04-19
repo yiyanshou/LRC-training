@@ -4,7 +4,13 @@ library(bslib)
 library(dplyr)
 library(ggplot2)
 
+set_theme(theme_grey(base_size = 15))
+
 left_sidebar <- sidebar(
+  selectInput("y_axis",
+              "y-axis",
+              c("LTC", "LAC"),
+              "LTC"),
   numericInput("learning",
                "Learning Slope %",
                100,

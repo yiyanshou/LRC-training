@@ -26,17 +26,21 @@ function(input, output, session) {
                          Qty = 0,
                          Model = c("CAD", "CAI", "UT"))
     
-    ggplot(dummy_data,
+    ggplot(qty_stream(),
            aes(x = Lot, y = Qty, color = Model)) +
-      geom_point() +
       geom_point(data = qty_stream(),
                  color = "black") +
+      geom_line(data = qty_stream(),
+                color = "black") +
+      geom_point(data = dummy_data) +
       ylim(0, input$max_qty) +
       scale_color_manual(values = rep("transparent", 3)) +
       theme(legend.text = element_text(color = "transparent"),
             legend.title = element_text(color = "transparent"),
             legend.key = element_rect(color = "transparent",
-                                      fill = "transparent"))
+                                      fill = "transparent")) +
+      scale_x_continuous(breaks = seq_len(input$n_lots),
+                         minor_breaks = NULL)
   }) %>%
     bindEvent(qty_stream(),
               input$max_qty)
@@ -58,22 +62,26 @@ function(input, output, session) {
   
   # Update LRC plot
   gg_curve <- reactive({
+    lac <- input$y_axis == "LAC"
     lrc_data <- unit_seq() %>%
       mutate(UT = ut_ltc(First,
                          Last,
                          input$t1,
                          learning(),
-                         rate()),
+                         rate(),
+                         lac),
              CAD = cad_ltc(First,
                            Last,
                            input$t1,
                            learning(),
-                           rate()),
+                           rate(),
+                           lac),
              CAI = cai_ltc(First,
                            Last,
                            input$t1,
                            learning(),
-                           rate())) %>%
+                           rate(),
+                           lac)) %>%
       tidyr::pivot_longer(c(UT, CAD, CAI),
                           names_to = "Model",
                           values_to = "LTC")
@@ -82,11 +90,14 @@ function(input, output, session) {
            aes(x = Lot, y = LTC, color = Model, shape = Model)) +
       geom_point() +
       geom_line() +
-      labs(x = NULL)
+      labs(x = NULL) +
+      scale_x_continuous(breaks = seq_len(input$n_lots),
+                         minor_breaks = NULL)
   }) %>%
     bindEvent(learning(),
               rate(),
               input$t1,
+              input$y_axis,
               unit_seq())
   
   output$curve_plot <- renderPlot({gg_curve()})
