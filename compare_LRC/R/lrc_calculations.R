@@ -19,7 +19,7 @@ ut_ltc <- Vectorize(ut_ltc_single)
 # Converts a sequence of cumulative averages to lot total costs
 cac_to_ltc <- function(cac, last) {
   cumsum <- cac*last
-  cumsum - dplyr::lag(cumsum, default = 0)
+  cumsum - lag(cumsum)
 }
 
 
@@ -60,12 +60,20 @@ cai_ltc <- function(first, last, t1, learning, rate, lac) {
 
 
 
+# Lag a vector
+lag <- function(x) {
+  c(0, x[-length(x)])
+}
+
+
+
 # Converts quantity stream to unit sequencing (first and last units)
 stream_to_seq <- function(qty) {
-  tibble(Qty = qty) %>%
-    mutate(Last = cumsum(Qty),
-           First = lag(Last, default = 0) + 1,
-           Lot = row_number())
+  last <- cumsum(qty)
+  first <- lag(last) + 1
+  
+  data.frame(First = first,
+             Last = last)
 }
 
 

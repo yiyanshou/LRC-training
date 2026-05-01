@@ -1,7 +1,6 @@
 
 library(shiny)
 library(bslib)
-library(dplyr)
 library(ggplot2)
 
 set_theme(theme_grey(base_size = 15))

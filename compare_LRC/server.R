@@ -2,29 +2,29 @@
 # Define server logic
 function(input, output, session) {
   # Initialize quantity stream
-  qty_stream <- reactiveVal(tibble(Lot = numeric(0),
-                                   Qty = numeric(0)))
+  qty_stream <- reactiveVal(data.frame(Lot = numeric(0),
+                                       Qty = numeric(0)))
   
   # Add or remove lots from quantity stream
   observe({
     old_stream <- qty_stream()
     n_new <- input$n_lots - nrow(old_stream)
     if (n_new > 0) {
-      new_rows <- tibble(Lot = seq_len(n_new) + max(old_stream$Lot, 0),
-                         Qty = rep(1, n_new))
+      new_rows <- data.frame(Lot = seq_len(n_new) + max(old_stream$Lot, 0),
+                             Qty = rep(1, n_new))
       new_stream <- rbind(old_stream, new_rows)
       qty_stream(new_stream)
     } else {
-      qty_stream(head(old_stream, input$n_lots))
+      qty_stream(old_stream[input$n_lots, ])
     }
-  }) %>%
+  }) |>
     bindEvent(input$n_lots)
   
   # Update quantity plot
   gg_qty <- reactive({
-    dummy_data <- tibble(Lot = 1,
-                         Qty = 0,
-                         Model = c("CAD", "CAI", "UT"))
+    dummy_data <- data.frame(Lot = 1,
+                             Qty = 0,
+                             Model = c("CAD", "CAI", "UT"))
     
     ggplot(qty_stream(),
            aes(x = Lot, y = Qty, color = Model)) +
@@ -41,59 +41,82 @@ function(input, output, session) {
                                       fill = "transparent")) +
       scale_x_continuous(breaks = seq_len(input$n_lots),
                          minor_breaks = NULL)
-  }) %>%
+  }) |>
     bindEvent(qty_stream(),
               input$max_qty)
   
   output$qty_plot <- renderPlot({gg_qty()})
   
   # Convert learning and rate slopes to parameters
-  learning <- reactive({log(input$learning/100, 2)}) %>%
+  learning <- reactive({log(input$learning/100, 2)}) |>
     bindEvent(input$learning)
-  rate <- reactive({log(input$rate/100, 2)}) %>%
+  rate <- reactive({log(input$rate/100, 2)}) |>
     bindEvent(input$rate)
   
   # Convert quantity stream to unit sequencing
   unit_seq <- reactive({
-    qty_stream() %>%
-      mutate(stream_to_seq(Qty))
-  }) %>%
+    cbind(qty_stream(),
+          stream_to_seq(qty_stream()$Qty))
+  }) |>
     bindEvent(qty_stream())
   
   # Update LRC plot
   gg_curve <- reactive({
     lac <- input$y_axis == "LAC"
-    lrc_data <- unit_seq() %>%
-      mutate(UT = ut_ltc(First,
+    
+    ut <- NULL
+    cad <- NULL
+    cai <- NULL
+    
+    with(
+      unit_seq(),
+      {
+        ut <<- data.frame(
+          Lot = Lot,
+          Model = "UT",
+          Cost = ut_ltc(First,
+                        Last,
+                        input$t1,
+                        learning(),
+                        rate(),
+                        lac)
+        )
+        
+        cad <<- data.frame(
+          Lot = Lot,
+          Model = "CAD",
+          Cost = cad_ltc(First,
                          Last,
                          input$t1,
                          learning(),
                          rate(),
-                         lac),
-             CAD = cad_ltc(First,
-                           Last,
-                           input$t1,
-                           learning(),
-                           rate(),
-                           lac),
-             CAI = cai_ltc(First,
-                           Last,
-                           input$t1,
-                           learning(),
-                           rate(),
-                           lac)) %>%
-      tidyr::pivot_longer(c(UT, CAD, CAI),
-                          names_to = "Model",
-                          values_to = "LTC")
+                         lac)
+        )
+        
+        cai <<- data.frame(
+          Lot = Lot,
+          Model = "CAI",
+          Cost = cai_ltc(First,
+                         Last,
+                         input$t1,
+                         learning(),
+                         rate(),
+                         lac)
+        )
+      })
+    
+    lrc_data <- rbind(ut,
+                      cad,
+                      cai)
     
     ggplot(lrc_data,
-           aes(x = Lot, y = LTC, color = Model, shape = Model)) +
+           aes(x = Lot, y = Cost, color = Model, shape = Model)) +
       geom_point() +
       geom_line() +
       labs(x = NULL) +
       scale_x_continuous(breaks = seq_len(input$n_lots),
                          minor_breaks = NULL)
-  }) %>%
+  }) |>
     bindEvent(learning(),
               rate(),
               input$t1,
@@ -114,7 +137,7 @@ function(input, output, session) {
     new_stream <- qty_stream()
     new_stream[[click_x, "Qty"]] <- click_y
     qty_stream(new_stream)
-  }) %>%
+  }) |>
     bindEvent(input$qty_click)
   
 }
