@@ -14,6 +14,7 @@ function(input, output, session) {
   
   # Add or remove lots from quantity stream
   observe({
+    req(input$n_lots >= 0)
     old_stream <- qty_stream()
     n_new <- input$n_lots - nrow(old_stream)
     if (n_new > 0) {
@@ -22,7 +23,7 @@ function(input, output, session) {
       new_stream <- rbind(old_stream, new_rows)
       qty_stream(new_stream)
     } else {
-      qty_stream(old_stream[input$n_lots, ])
+      qty_stream(old_stream[seq_len(input$n_lots), ])
     }
   }) |>
     bindEvent(input$n_lots)
@@ -50,6 +51,8 @@ function(input, output, session) {
               input$max_qty)
   
   output$qty_plot <- renderPlot({
+    validate(need(input$n_lots > 0,
+                  "The number of lots must be at least 1."))
     par(mar = c(3.1, 4.1, 0.1, 2.1),
         xpd = NA,
         cex = 1.3,
@@ -153,6 +156,13 @@ function(input, output, session) {
               unit_seq())
   
   output$curve_plot <- renderPlot({
+    validate(need(input$n_lots > 1,
+                  "The number of lots must be at least 2."))
+    validate(need(input$learning > 0,
+                  "The learning slope must be nonnegative."))
+    validate(need(input$rate > 0,
+                  "The rate slope must be nonnegative."))
+    
     par(mar = c(0.5, 4.1, 2.7, 2.1),
         cex = 1.3,
         xpd = NA,
