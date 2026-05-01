@@ -47,7 +47,10 @@ cad_ltc <- function(first, last, t1, learning, rate, lac = F) {
 # CUMAV-Iterative LTC calculation
 cai_ltc <- function(first, last, t1, learning, rate, lac) {
   qty <- last - first + 1
-  lc <- last^(learning + 1) - (first - 1)^(learning + 1)
+  cc_prev <- ifelse(first > 1,
+                    (first - 1)^(learning + 1),
+                    0)
+  lc <- last^(learning + 1) - cc_prev
   rc <- qty^rate
   ltc <- t1*lc*rc
   
