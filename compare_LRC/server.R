@@ -1,6 +1,13 @@
 
 # Define server logic
 function(input, output, session) {
+  # Set ordering of models
+  model_enum <- c("Unit Theory", "CUMAV-Direct", "CUMAV-Iterative")
+  
+  # Set color palette and point shapes for curve plot
+  palette <- c("red", "blue", "green")
+  point_shapes <- c(0, 1, 2)
+  
   # Initialize quantity stream
   qty_stream <- reactiveVal(data.frame(Lot = numeric(0),
                                        Qty = numeric(0)))
@@ -26,26 +33,29 @@ function(input, output, session) {
                              Qty = 0,
                              Model = c("CAD", "CAI", "UT"))
     
-    ggplot(qty_stream(),
-           aes(x = Lot, y = Qty, color = Model)) +
-      geom_point(data = qty_stream(),
-                 color = "black") +
-      geom_line(data = qty_stream(),
-                color = "black") +
-      geom_point(data = dummy_data) +
-      ylim(0, input$max_qty) +
-      scale_color_manual(values = rep("transparent", 3)) +
-      theme(legend.text = element_text(color = "transparent"),
-            legend.title = element_text(color = "transparent"),
-            legend.key = element_rect(color = "transparent",
-                                      fill = "transparent")) +
-      scale_x_continuous(breaks = seq_len(input$n_lots),
-                         minor_breaks = NULL)
+    with(
+      qty_stream(),
+      {
+        plot(x = Lot,
+             y = Qty,
+             ylim = c(0, input$max_qty),
+             type = "b",
+             xlab = NA)
+        title(xlab = "Lot",
+              line = 2.1)
+      }
+    )
   }) |>
     bindEvent(qty_stream(),
               input$max_qty)
   
-  output$qty_plot <- renderPlot({gg_qty()})
+  output$qty_plot <- renderPlot({
+    par(mar = c(3.1, 4.1, 0.1, 2.1),
+        xpd = NA,
+        cex = 1.3,
+        las = 1)
+    gg_qty()
+  })
   
   # Convert learning and rate slopes to parameters
   learning <- reactive({log(input$learning/100, 2)}) |>
@@ -73,7 +83,7 @@ function(input, output, session) {
       {
         ut <<- data.frame(
           Lot = Lot,
-          Model = "UT",
+          Model = factor("Unit Theory", model_enum),
           Cost = ut_ltc(First,
                         Last,
                         input$t1,
@@ -84,7 +94,7 @@ function(input, output, session) {
         
         cad <<- data.frame(
           Lot = Lot,
-          Model = "CAD",
+          Model = factor("CUMAV-Direct", model_enum),
           Cost = cad_ltc(First,
                          Last,
                          input$t1,
@@ -95,7 +105,7 @@ function(input, output, session) {
         
         cai <<- data.frame(
           Lot = Lot,
-          Model = "CAI",
+          Model = factor("CUMAV-Iterative", model_enum),
           Cost = cai_ltc(First,
                          Last,
                          input$t1,
@@ -105,17 +115,36 @@ function(input, output, session) {
         )
       })
     
-    lrc_data <- rbind(ut,
-                      cad,
-                      cai)
+    ymin <- min(ut$Cost, cad$Cost, cai$Cost)
+    ymax <- max(ut$Cost, cad$Cost, cai$Cost)
     
-    ggplot(lrc_data,
-           aes(x = Lot, y = Cost, color = Model, shape = Model)) +
-      geom_point() +
-      geom_line() +
-      labs(x = NULL) +
-      scale_x_continuous(breaks = seq_len(input$n_lots),
-                         minor_breaks = NULL)
+    plot(x = ut$Lot,
+         y = ut$Cost,
+         col = palette[ut$Model],
+         pch = point_shapes[ut$Model],
+         type = "b",
+         ylim = c(ymin, ymax),
+         ylab = input$y_axis,
+         xlab = NA)
+    lines(x = cad$Lot,
+          y = cad$Cost,
+          col = palette[cad$Model],
+          pch = point_shapes[cad$Model],
+          type = "b")
+    lines(x = cai$Lot,
+          y = cai$Cost,
+          col = palette[cai$Model],
+          pch = point_shapes[cai$Model],
+          type = "b")
+    legend("top",
+           legend = model_enum,
+           col = palette,
+           pch = point_shapes,
+           lty = 1,
+           horiz = T,
+           bty = "n",
+           text.width = 2,
+           inset = -.2)
   }) |>
     bindEvent(learning(),
               rate(),
@@ -123,7 +152,13 @@ function(input, output, session) {
               input$y_axis,
               unit_seq())
   
-  output$curve_plot <- renderPlot({gg_curve()})
+  output$curve_plot <- renderPlot({
+    par(mar = c(0.5, 4.1, 2.7, 2.1),
+        cex = 1.3,
+        xpd = NA,
+        las = 1)
+    gg_curve()
+  })
   
   # Interactive plotting quantity stream adjustment
   observe({
