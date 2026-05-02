@@ -140,13 +140,13 @@ function(input, output, session) {
           pch = point_shapes[cai$Model],
           type = "b")
     legend("top",
-           legend = model_enum,
+           legend = paste0(model_enum, "    "),
            col = palette,
            pch = point_shapes,
            lty = 1,
            horiz = T,
            bty = "n",
-           text.width = 2,
+           text.width = NA,
            inset = -.2)
   }) |>
     bindEvent(learning(),
@@ -177,7 +177,7 @@ function(input, output, session) {
     click_y <- round(input$qty_click$y)
     req(1 <= click_x,
         click_x <= input$n_lots,
-        0 <= click_y)
+        1 <= click_y)
     
     new_stream <- qty_stream()
     new_stream[[click_x, "Qty"]] <- click_y
