@@ -29,7 +29,7 @@ function(input, output, session) {
     bindEvent(input$n_lots)
   
   # Update quantity plot
-  gg_qty <- reactive({
+  qty_plot <- reactive({
     dummy_data <- data.frame(Lot = 1,
                              Qty = 0,
                              Model = c("CAD", "CAI", "UT"))
@@ -57,14 +57,14 @@ function(input, output, session) {
         xpd = NA,
         cex = 1.3,
         las = 1)
-    gg_qty()
+    qty_plot()
   })
   
   # Convert learning and rate slopes to parameters
-  learning <- reactive({log(input$learning/100, 2)}) |>
-    bindEvent(input$learning)
-  rate <- reactive({log(input$rate/100, 2)}) |>
-    bindEvent(input$rate)
+  learning <- reactive({log(input$learning_slope/100, 2)}) |>
+    bindEvent(input$learning_slope)
+  rate <- reactive({log(input$rate_slope/100, 2)}) |>
+    bindEvent(input$rate_slope)
   
   # Convert quantity stream to unit sequencing
   unit_seq <- reactive({
@@ -74,7 +74,7 @@ function(input, output, session) {
     bindEvent(qty_stream())
   
   # Update LRC plot
-  gg_curve <- reactive({
+  curve_plot <- reactive({
     lac <- input$y_axis == "LAC"
     
     ut <- NULL
@@ -158,16 +158,16 @@ function(input, output, session) {
   output$curve_plot <- renderPlot({
     validate(need(input$n_lots > 1,
                   "The number of lots must be at least 2."))
-    validate(need(input$learning > 0,
+    validate(need(input$learning_slope > 0,
                   "The learning slope must be nonnegative."))
-    validate(need(input$rate > 0,
+    validate(need(input$rate_slope > 0,
                   "The rate slope must be nonnegative."))
     
     par(mar = c(0.5, 4.1, 2.7, 2.1),
         cex = 1.3,
         xpd = NA,
         las = 1)
-    gg_curve()
+    curve_plot()
   })
   
   # Interactive plotting quantity stream adjustment
