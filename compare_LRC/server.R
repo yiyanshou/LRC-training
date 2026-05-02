@@ -12,6 +12,9 @@ function(input, output, session) {
   qty_stream <- reactiveVal(data.frame(Lot = numeric(0),
                                        Qty = numeric(0)))
   
+  # Open info popover on load
+  toggle_popover("help")
+  
   # Add or remove lots from quantity stream
   observe({
     req(input$n_lots >= 0)
