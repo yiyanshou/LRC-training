@@ -37,11 +37,13 @@ left_sidebar <- sidebar(
                updateOn = "blur"),
   numericInput("max_qty",
                "Maximum Quantity",
-               100,
+               10,
                1,
                NA,
                1,
-               updateOn = "blur")
+               updateOn = "blur"),
+  actionButton("reset",
+               "Reset")
 )
 
 page_sidebar(

@@ -185,4 +185,23 @@ function(input, output, session) {
   }) |>
     bindEvent(input$qty_click)
   
+  # Reset button
+  observe({
+    updateNumericInput(inputId = "learning",
+                       value = 100)
+    updateNumericInput(inputId = "rate",
+                       value = 100)
+    updateNumericInput(inputId = "t1",
+                       value = 1)
+    updateNumericInput(inputId = "n_lots",
+                       value = 10)
+    updateNumericInput(inputId = "max_qty",
+                       value = 10)
+    
+    data.frame(Lot = seq_len(input$n_lots),
+               Qty = rep(1, input$n_lots)) |>
+      qty_stream()
+  }) |>
+    bindEvent(input$reset)
+  
 }
