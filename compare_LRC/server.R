@@ -80,7 +80,8 @@ function(input, output, session) {
               zoom_limits$ymin,
               zoom_limits$ymax,
               zoom_limits$xmin,
-              zoom_limits$xmax)
+              zoom_limits$xmax,
+              input$reset)
   
   output$qty_plot <- renderPlot({
     validate(need(n_lots() >= 2,
@@ -213,7 +214,8 @@ function(input, output, session) {
               zoom_limits$ymin,
               zoom_limits$ymax,
               zoom_limits$xmin,
-              zoom_limits$xmax)
+              zoom_limits$xmax,
+              input$reset)
   
   output$curve_plot <- renderPlot({
     validate(need(n_lots() >= 2,
@@ -266,7 +268,7 @@ function(input, output, session) {
               input$reset,
               input$y_axis)
   
-  # Reset button
+  # Reset sidebar settings
   observe({
     updateNumericInput(inputId = "learning",
                        value = 100)
