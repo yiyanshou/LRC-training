@@ -56,7 +56,7 @@ function(input, output, session) {
   output$qty_plot <- renderPlot({
     validate(need(input$n_lots > 0,
                   "The number of lots must be at least 1."))
-    par(mar = c(3.1, 4.1, 0.1, 2.1),
+    par(mar = c(3.1, 4.1, 0.1, 0),
         xpd = NA,
         cex = 1.3,
         las = 1)
@@ -166,7 +166,7 @@ function(input, output, session) {
     validate(need(input$rate_slope > 0,
                   "The rate slope must be nonnegative."))
     
-    par(mar = c(0.5, 4.1, 2.7, 2.1),
+    par(mar = c(0.5, 4.1, 2.7, 0),
         cex = 1.3,
         xpd = NA,
         las = 1)
@@ -187,6 +187,12 @@ function(input, output, session) {
     qty_stream(new_stream)
   }) |>
     bindEvent(input$qty_click)
+  
+  # Interactive curve plot zoom
+  output$debug <- renderPrint({
+    input$curve_brush
+  }) |>
+    bindEvent(input$curve_brush)
   
   # Reset button
   observe({
