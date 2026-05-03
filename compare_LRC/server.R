@@ -39,6 +39,15 @@ function(input, output, session) {
   }) |>
     bindEvent(n_lots())
   
+  # Update max quantity
+  observe({
+    qty <- qty_stream()
+    qty$Qty <- pmin(qty$Qty,
+                    input$max_qty)
+    qty_stream(qty)
+  }) |>
+    bindEvent(input$max_qty)
+  
   # Update quantity plot
   qty_plot <- reactive({
     with(
