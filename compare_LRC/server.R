@@ -259,7 +259,8 @@ function(input, output, session) {
     zoom_limits$xmax <- NA_real_
   }) |>
     bindEvent(input$zoom_out,
-              input$reset)
+              input$reset,
+              input$y_axis)
   
   # Reset button
   observe({
