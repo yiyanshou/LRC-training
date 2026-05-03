@@ -12,10 +12,10 @@ function(input, output, session) {
   qty_stream <- reactiveVal(data.frame(Lot = numeric(0),
                                        Qty = numeric(0)))
   
-  zoom_limits <- reactiveValues(ymin = -Inf,
-                                ymax = Inf,
-                                xmin = -Inf,
-                                xmax = Inf)
+  zoom_limits <- reactiveValues(ymin = NA_real_,
+                                ymax = NA_real_,
+                                xmin = NA_real_,
+                                xmax = NA_real_)
   
   # Open info popover on load
   toggle_popover("help")
@@ -44,10 +44,16 @@ function(input, output, session) {
     with(
       qty_stream(),
       {
-        xmin <- max(min(Lot),
-                    zoom_limits$xmin)
-        xmax <- min(max(Lot),
-                    zoom_limits$xmax)
+        xmin <- if(is.na(zoom_limits$xmin)) {
+          min(Lot)
+        } else {
+          zoom_limits$xmin
+        }
+        xmax <- if(is.na(zoom_limits$xmax)) {
+          max(Lot)
+        } else {
+          zoom_limits$xmax
+        }
         
         plot(x = Lot,
              y = Qty,
@@ -135,14 +141,26 @@ function(input, output, session) {
         )
       })
     
-    ymin <- max(min(ut$Cost, cad$Cost, cai$Cost),
-                zoom_limits$ymin)
-    ymax <- min(max(ut$Cost, cad$Cost, cai$Cost),
-                zoom_limits$ymax)
-    xmin <- max(min(qty_stream()$Lot),
-                zoom_limits$xmin)
-    xmax <- min(max(qty_stream()$Lot),
-                zoom_limits$xmax)
+    ymin <- if(is.na(zoom_limits$ymin)) {
+      min(ut$Cost, cad$Cost, cai$Cost)
+    } else {
+      zoom_limits$ymin
+    }
+    ymax <- if(is.na(zoom_limits$ymax)) {
+      max(ut$Cost, cad$Cost, cai$Cost)
+    } else {
+      zoom_limits$ymax
+    }
+    xmin <- if(is.na(zoom_limits$xmin)) {
+      min(ut$Lot, cad$Lot, cai$Lot)
+    } else {
+      zoom_limits$xmin
+    }
+    xmax <- if(is.na(zoom_limits$xmax)) {
+      max(ut$Lot, cad$Lot, cai$Lot)
+    } else {
+      zoom_limits$xmax
+    }
     
     plot(x = ut$Lot,
          y = ut$Cost,
@@ -226,10 +244,10 @@ function(input, output, session) {
     bindEvent(input$zoom_in)
   
   observe({
-    zoom_limits$ymin <- -Inf
-    zoom_limits$ymax <- Inf
-    zoom_limits$xmin <- -Inf
-    zoom_limits$xmax <- Inf
+    zoom_limits$ymin <- NA_real_
+    zoom_limits$ymax <- NA_real_
+    zoom_limits$xmin <- NA_real_
+    zoom_limits$xmax <- NA_real_
   }) |>
     bindEvent(input$zoom_out)
   
