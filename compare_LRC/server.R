@@ -69,7 +69,9 @@ function(input, output, session) {
              ylim = c(0, input$max_qty),
              xlim = c(xmin, xmax),
              type = "b",
-             xlab = NA)
+             lwd = 2,
+             xlab = NA,
+             panel.first = grid())
         title(xlab = "Lot",
               line = 2.1)
       }
@@ -181,20 +183,24 @@ function(input, output, session) {
          col = palette[ut$Model],
          pch = point_shapes[ut$Model],
          type = "b",
+         lwd = 2,
          ylim = c(ymin, ymax),
          xlim = c(xmin, xmax),
          ylab = input$y_axis,
-         xlab = NA)
+         xlab = NA,
+         panel.first = grid())
     lines(x = cad$Lot,
           y = cad$Cost,
           col = palette[cad$Model],
           pch = point_shapes[cad$Model],
-          type = "b")
+          type = "b",
+          lwd = 2)
     lines(x = cai$Lot,
           y = cai$Cost,
           col = palette[cai$Model],
           pch = point_shapes[cai$Model],
-          type = "b")
+          type = "b",
+          lwd = 2)
     legend("top",
            legend = paste0(model_enum, "    "),
            col = palette,
