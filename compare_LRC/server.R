@@ -68,7 +68,6 @@ function(input, output, session) {
     validate(need(input$n_lots > 0,
                   "The number of lots must be at least 1."))
     par(mar = c(3.1, 4.1, 0.1, 0),
-        # xpd = NA,
         cex = 1.3,
         las = 1)
     qty_plot()
@@ -191,7 +190,6 @@ function(input, output, session) {
     
     par(mar = c(0.5, 4.1, 2.7, 0),
         cex = 1.3,
-        # xpd = NA,
         las = 1)
     curve_plot()
   })
