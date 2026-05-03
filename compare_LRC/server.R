@@ -171,6 +171,10 @@ function(input, output, session) {
       zoom_limits$xmax
     }
     
+    line_height_inches <- par("cin")[2] * par("cex") * par("lheight")
+    plot_height_inches <- par("pin")[2]
+    inset_fraction <- (-3 * line_height_inches) / plot_height_inches
+    
     plot(x = ut$Lot,
          y = ut$Cost,
          col = palette[ut$Model],
@@ -198,7 +202,7 @@ function(input, output, session) {
            horiz = T,
            bty = "n",
            text.width = NA,
-           inset = -.2,
+           inset = inset_fraction,
            xpd = NA)
   }) |>
     bindEvent(learning(),
