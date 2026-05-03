@@ -25,8 +25,6 @@ theme <- bs_theme(preset = "shiny") |>
                height: 50%;
                width: 100%}") |>
   
-  #bs_add_rules(".plot-box > * {flex: auto}") |>
-  
   bs_add_rules(".main {display: flex;
                flex-direction: column;
                height: 100%;
@@ -99,7 +97,8 @@ zoom_ctrls <- tags$div(zoom_in_btn,
                        class = "zoom-box")
 
 top_panel <- tags$div(plotOutput("curve_plot",
-                                 brush = "curve_brush",
+                                 brush = brushOpts("curve_brush",
+                                                   resetOnNew = T),
                                  height = "100%"),
                       zoom_ctrls,
                       class = "plot-box")

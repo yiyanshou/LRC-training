@@ -8,9 +8,14 @@ function(input, output, session) {
   palette <- c("red", "blue", "green")
   point_shapes <- c(0, 1, 2)
   
-  # Initialize quantity stream
+  # Initialize quantity stream and curve plot limits
   qty_stream <- reactiveVal(data.frame(Lot = numeric(0),
                                        Qty = numeric(0)))
+  
+  zoom_limits <- reactiveValues(ymin = -Inf,
+                                ymax = Inf,
+                                xmin = -Inf,
+                                xmax = Inf)
   
   # Open info popover on load
   toggle_popover("help")
@@ -33,16 +38,18 @@ function(input, output, session) {
   
   # Update quantity plot
   qty_plot <- reactive({
-    dummy_data <- data.frame(Lot = 1,
-                             Qty = 0,
-                             Model = c("CAD", "CAI", "UT"))
-    
     with(
       qty_stream(),
       {
+        xmin <- max(min(Lot),
+                    zoom_limits$xmin)
+        xmax <- min(max(Lot),
+                    zoom_limits$xmax)
+        
         plot(x = Lot,
              y = Qty,
              ylim = c(0, input$max_qty),
+             xlim = c(xmin, xmax),
              type = "b",
              xlab = NA)
         title(xlab = "Lot",
@@ -51,7 +58,11 @@ function(input, output, session) {
     )
   }) |>
     bindEvent(qty_stream(),
-              input$max_qty)
+              input$max_qty,
+              zoom_limits$ymin,
+              zoom_limits$ymax,
+              zoom_limits$xmin,
+              zoom_limits$xmax)
   
   output$qty_plot <- renderPlot({
     validate(need(input$n_lots > 0,
@@ -121,8 +132,14 @@ function(input, output, session) {
         )
       })
     
-    ymin <- min(ut$Cost, cad$Cost, cai$Cost)
-    ymax <- max(ut$Cost, cad$Cost, cai$Cost)
+    ymin <- max(min(ut$Cost, cad$Cost, cai$Cost),
+                zoom_limits$ymin)
+    ymax <- min(max(ut$Cost, cad$Cost, cai$Cost),
+                zoom_limits$ymax)
+    xmin <- max(min(qty_stream()$Lot),
+                zoom_limits$xmin)
+    xmax <- min(max(qty_stream()$Lot),
+                zoom_limits$xmax)
     
     plot(x = ut$Lot,
          y = ut$Cost,
@@ -130,6 +147,7 @@ function(input, output, session) {
          pch = point_shapes[ut$Model],
          type = "b",
          ylim = c(ymin, ymax),
+         xlim = c(xmin, xmax),
          ylab = input$y_axis,
          xlab = NA)
     lines(x = cad$Lot,
@@ -156,7 +174,11 @@ function(input, output, session) {
               rate(),
               input$t1,
               input$y_axis,
-              unit_seq())
+              unit_seq(),
+              zoom_limits$ymin,
+              zoom_limits$ymax,
+              zoom_limits$xmin,
+              zoom_limits$xmax)
   
   output$curve_plot <- renderPlot({
     validate(need(input$n_lots > 1,
@@ -189,10 +211,22 @@ function(input, output, session) {
     bindEvent(input$qty_click)
   
   # Interactive curve plot zoom
-  output$debug <- renderPrint({
-    input$curve_brush
+  observe({
+    req(input$curve_brush)
+    zoom_limits$ymin <- input$curve_brush$ymin
+    zoom_limits$ymax <- input$curve_brush$ymax
+    zoom_limits$xmin <- input$curve_brush$xmin
+    zoom_limits$xmax <- input$curve_brush$xmax
   }) |>
-    bindEvent(input$curve_brush)
+    bindEvent(input$zoom_in)
+  
+  observe({
+    zoom_limits$ymin <- -Inf
+    zoom_limits$ymax <- Inf
+    zoom_limits$xmin <- -Inf
+    zoom_limits$xmax <- Inf
+  }) |>
+    bindEvent(input$zoom_out)
   
   # Reset button
   observe({
