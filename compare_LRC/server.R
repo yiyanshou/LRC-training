@@ -20,21 +20,24 @@ function(input, output, session) {
   # Open info popover on load
   toggle_popover("help")
   
+  # Round number of lots input to nearest integer
+  n_lots <- reactive({round(input$n_lots)})
+  
   # Add or remove lots from quantity stream
   observe({
-    req(input$n_lots >= 0)
+    req(n_lots() > 0)
     old_stream <- qty_stream()
-    n_new <- input$n_lots - nrow(old_stream)
+    n_new <- n_lots() - nrow(old_stream)
     if (n_new > 0) {
       new_rows <- data.frame(Lot = seq_len(n_new) + max(old_stream$Lot, 0),
                              Qty = rep(1, n_new))
       new_stream <- rbind(old_stream, new_rows)
       qty_stream(new_stream)
     } else {
-      qty_stream(old_stream[seq_len(input$n_lots), ])
+      qty_stream(old_stream[seq_len(n_lots()), ])
     }
   }) |>
-    bindEvent(input$n_lots)
+    bindEvent(n_lots())
   
   # Update quantity plot
   qty_plot <- reactive({
@@ -65,8 +68,9 @@ function(input, output, session) {
               zoom_limits$xmax)
   
   output$qty_plot <- renderPlot({
-    validate(need(input$n_lots > 0,
-                  "The number of lots must be at least 1."))
+    validate(need(n_lots() >= 2,
+                  "The number of lots must be at least 2."))
+    
     par(mar = c(3.1, 4.1, 0.1, 0),
         cex = 1.3,
         las = 1)
@@ -181,12 +185,14 @@ function(input, output, session) {
               zoom_limits$xmax)
   
   output$curve_plot <- renderPlot({
-    validate(need(input$n_lots > 1,
+    validate(need(n_lots() >= 2,
                   "The number of lots must be at least 2."))
     validate(need(input$learning_slope > 0,
-                  "The learning slope must be nonnegative."))
+                  "The learning slope must be positive."))
     validate(need(input$rate_slope > 0,
-                  "The rate slope must be nonnegative."))
+                  "The rate slope must be positive."))
+    validate(need(input$t1 >= 0,
+                  "T1 must be nonnegative."))
     
     par(mar = c(0.5, 4.1, 2.7, 0),
         cex = 1.3,
@@ -200,7 +206,7 @@ function(input, output, session) {
     click_x <- round(input$qty_click$x)
     click_y <- round(input$qty_click$y)
     req(1 <= click_x,
-        click_x <= input$n_lots,
+        click_x <= n_lots(),
         1 <= click_y)
     
     new_stream <- qty_stream()
@@ -240,8 +246,8 @@ function(input, output, session) {
     updateNumericInput(inputId = "max_qty",
                        value = 10)
     
-    data.frame(Lot = seq_len(input$n_lots),
-               Qty = rep(1, input$n_lots)) |>
+    data.frame(Lot = seq_len(n_lots()),
+               Qty = rep(1, n_lots())) |>
       qty_stream()
   }) |>
     bindEvent(input$reset)
