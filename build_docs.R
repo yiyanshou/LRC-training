@@ -6,5 +6,5 @@ shinylive::export("compare_LRC",
 # Generate manifest for Posit Connect
 rsconnect::writeManifest("compare_LRC")
 
-# Run app locally
+# Run WASM app locally
 httpuv::runStaticServer("docs")
