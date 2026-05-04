@@ -8,7 +8,7 @@ function(input, output, session) {
   palette <- c("red", "blue", "green")
   point_shapes <- c(0, 1, 2)
   
-  # Initialize quantity stream and curve plot limits
+  # Initialize number of lots, quantity stream and curve plot limits
   qty_stream <- reactiveVal(data.frame(Lot = numeric(0),
                                        Qty = numeric(0)))
   
@@ -17,11 +17,18 @@ function(input, output, session) {
                                 xmin = NA_real_,
                                 xmax = NA_real_)
   
+  n_lots <- reactiveVal(10)
+  
   # Open info popover on load
   toggle_popover("help")
   
   # Round number of lots input to nearest integer
-  n_lots <- reactive({round(input$n_lots)})
+  observe({
+    rounded_value <- round(input$n_lots)
+    req(rounded_value != n_lots(),
+        cancelOutput = T)
+    n_lots(rounded_value)
+  })
   
   # Add or remove lots from quantity stream
   observe({
