@@ -277,9 +277,9 @@ function(input, output, session) {
   
   # Reset sidebar settings
   observe({
-    updateNumericInput(inputId = "learning",
+    updateNumericInput(inputId = "learning_slope",
                        value = 100)
-    updateNumericInput(inputId = "rate",
+    updateNumericInput(inputId = "rate_slope",
                        value = 100)
     updateNumericInput(inputId = "t1",
                        value = 1)
