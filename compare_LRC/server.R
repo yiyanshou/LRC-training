@@ -206,6 +206,7 @@ function(input, output, session) {
            col = palette,
            pch = point_shapes,
            lty = 1,
+           lwd = 2,
            horiz = T,
            bty = "n",
            text.width = NA,
