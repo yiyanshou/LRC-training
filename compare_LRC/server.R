@@ -17,18 +17,11 @@ function(input, output, session) {
                                 xmin = NA_real_,
                                 xmax = NA_real_)
   
-  n_lots <- reactiveVal(10)
-  
   # Open info popover on load
   toggle_popover("help")
   
   # Round number of lots input to nearest integer
-  observe({
-    rounded_value <- round(input$n_lots)
-    req(rounded_value != n_lots(),
-        cancelOutput = T)
-    n_lots(rounded_value)
-  })
+  n_lots <- reactive({round(input$n_lots)})
   
   # Add or remove lots from quantity stream
   observe({
@@ -81,6 +74,7 @@ function(input, output, session) {
              panel.first = grid())
         title(xlab = "Lot",
               line = 2.1)
+        recordPlot()
       }
     )
   }) |>
@@ -219,6 +213,7 @@ function(input, output, session) {
            text.width = NA,
            inset = inset_fraction,
            xpd = NA)
+    recordPlot()
   }) |>
     bindEvent(learning(),
               rate(),
